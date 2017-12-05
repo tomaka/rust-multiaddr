@@ -3,6 +3,7 @@
 ///! Implementation of [multiaddr](https://github.com/jbenet/multiaddr)
 ///! in Rust.
 extern crate byteorder;
+#[cfg(feature = "cid")]
 extern crate cid;
 extern crate integer_encoding;
 

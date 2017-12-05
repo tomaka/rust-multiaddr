@@ -1,4 +1,5 @@
 use std::{net, fmt, error, io, num};
+#[cfg(feature = "cid")]
 use cid;
 use byteorder;
 
@@ -40,6 +41,7 @@ impl From<io::Error> for Error {
     }
 }
 
+#[cfg(feature = "cid")]
 impl From<cid::Error> for Error {
     fn from(_: cid::Error) -> Error {
         Error::ParsingError

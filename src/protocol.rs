@@ -3,6 +3,7 @@ use std::str::FromStr;
 use std::convert::From;
 use std::io::Cursor;
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
+#[cfg(feature = "cid")]
 use cid::Cid;
 use integer_encoding::VarIntWriter;
 
@@ -165,12 +166,7 @@ impl Protocol {
                 Ok(res)
             }
             IPFS => {
-                let bytes = Cid::from(a)?.to_bytes();
-                let mut res = vec![];
-                res.write_varint(bytes.len())?;
-                res.extend(bytes);
-
-                Ok(res)
+                handle_ipfs_to_bytes(a)
             }
             ONION => Ok(Vec::new()),
             UTP |
@@ -235,9 +231,7 @@ impl Protocol {
                 Ok(Some(num.to_string()))
             }
             IPFS => {
-                let c = Cid::from(b)?;
-
-                Ok(Some(c.to_string()))
+                handle_ipfs_from_bytes(b)
             }
             ONION => Ok(None),
             UTP |
@@ -250,4 +244,29 @@ impl Protocol {
             Libp2pWebrtcDirect => Ok(None),
         }
     }
+}
+
+#[cfg(feature = "cid")]
+fn handle_ipfs_to_bytes(a: &str) -> Result<Vec<u8>> {
+    let bytes = Cid::from(a)?.to_bytes();
+    let mut res = vec![];
+    res.write_varint(bytes.len())?;
+    res.extend(bytes);
+    Ok(res)
+}
+
+#[cfg(not(feature = "cid"))]
+fn handle_ipfs_to_bytes(_: &str) -> Result<Vec<u8>> {
+    Err(Error::UnkownProtocolString)
+}
+
+#[cfg(feature = "cid")]
+fn handle_ipfs_from_bytes(b: &[u8]) -> Result<Option<String>> {
+    let c = Cid::from(b)?;
+    Ok(Some(c.to_string()))
+}
+
+#[cfg(not(feature = "cid"))]
+fn handle_ipfs_from_bytes(_: &[u8]) -> Result<Option<String>> {
+    Err(Error::UnkownProtocolString)
 }
